@@ -1,20 +1,3 @@
-"""NLP extrakcia finančných údajov z výkazov SEC (10-Q / 10-K) → investor_kpis.csv
-
-Príklady (z koreňa projektu, s aktivovaným .venv):
-    python main.py sectors                              # zoznam odvetví a firiem v katalógu
-    python main.py run --sector Energetika              # všetky firmy odvetvia, roky 2024–2025
-    python main.py run --tickers XOM CVX COP --years 2024 2025
-    python main.py run --all                            # všetky firmy z katalógu naraz
-    python main.py diagnose XOM                         # prečo firma chýba / čo sa stiahlo
-    python main.py remove --sector Utility              # odstrániť odvetvie/firmy z výsledkov a tréningu
-    python main.py publish                              # pripraviť priečinok na GitHub / Streamlit Cloud
-    python main.py explain D --year 2025 --q 4 --metric net_income   # z ktorých riadkov model vyberal
-    python main.py add NUE --sector "Materiály" --name "Nucor"   # pridať firmu do katalógu
-    python main.py prices                               # aktualizovať ceny akcií a ocenenie
-    python main.py kpi                                  # prepočítať ukazovatele bez nového tréningu (pár sekúnd)
-    python main.py pdf sprava.pdf --ticker PBR --report-date 2025-12-31
-    streamlit run app.py                                # vizualizácia
-"""
 from __future__ import annotations
 
 import argparse
@@ -28,7 +11,7 @@ from src.config import DEFAULT_YEARS, Paths
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=["sectors", "run", "add", "prices", "kpi", "diagnose", "explain", "remove", "publish", "pdf"])
+    ap.add_argument("command", choices=["sectors", "run", "add", "prices", "kpi", "diagnose", "explain", "remove", "pdf"])
     ap.add_argument("arg", nargs="?", help="ticker (add) alebo PDF súbor (pdf)")
     ap.add_argument("--sector", help="odvetvie z katalógu")
     ap.add_argument("--tickers", nargs="*", default=[])
@@ -85,9 +68,6 @@ def main() -> None:
     elif a.command == "kpi":
         recompute_kpis(paths)
 
-    elif a.command == "publish":
-        publish(paths)
-
     elif a.command == "remove":
         remove(paths, a.sector, [t.upper() for t in a.tickers])
 
@@ -126,40 +106,6 @@ def recompute_kpis(paths: Paths) -> None:
     base.to_csv(paths.audit / "valuation_base.csv", index=False, encoding="utf-8-sig")
     refresh_valuation(paths, fetch=False)
     print(f"Ukazovatele prepočítané → {paths.kpis}")
-
-
-def publish(paths: Paths) -> None:
-    """Skopíruje kód a výsledky (bez .env, stiahnutých výkazov a modelu) do priečinka publish/energy-nlp-app
-    a zabalí ho do zipu – to sa nahrá na GitHub a nasadí na Streamlit Community Cloud."""
-    import shutil
-
-    if not paths.kpis.exists():
-        sys.exit("Chýbajú výsledky (output/investor_kpis.csv) – najprv spusti: python main.py run --all")
-    root = config.ROOT
-    dest = root / "publish" / "energy-nlp-app"
-    if dest.exists():
-        shutil.rmtree(dest)
-    files = ["app.py", "main.py", "README.md", "requirements.txt", ".env.example",
-             "catalog/companies.csv", "catalog/manual_prices.example.csv", ".vscode/launch.json"]
-    files += [str(f.relative_to(root)) for f in sorted((root / "src").glob("*.py"))]
-    outputs = ["investor_kpis.csv", "valuation_current.csv", "audit/extracted_values.csv",
-               "audit/accuracy_by_metric.csv", "audit/accuracy_by_company.csv", "audit/runs.csv",
-               "audit/evaluation_report.txt", "audit/kpi_xbrl_reference.csv"]
-    for rel in files:
-        if (root / rel).exists():
-            (dest / rel).parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(root / rel, dest / rel)
-    for rel in outputs:
-        f = paths.output / rel
-        if f.exists():
-            (dest / "output" / rel).parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(f, dest / "output" / rel)
-    (dest / ".gitignore").write_text(".venv/\n__pycache__/\n.env\ndata/\nmodels/\npublish/\n", encoding="utf-8")
-    archive = shutil.make_archive(str(root / "publish" / "energy-nlp-app"), "zip", dest)
-    n = sum(1 for f in dest.rglob("*") if f.is_file())
-    print(f"Pripravených {n} súborov → {dest}")
-    print(f"Zip na odovzdanie → {archive}")
-    print("Neobsahuje .env (tvoj e-mail), stiahnuté výkazy ani model – tie sa dajú kedykoľvek vytvoriť znova.")
 
 
 def remove(paths: Paths, sector: str | None, tickers: list[str]) -> None:
