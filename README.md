@@ -1,48 +1,42 @@
 # NLP extrakcia finančných ukazovateľov z výkazov SEC
 
 Projekt stiahne štvrťročné (10-Q) a ročné (10-K) výkazy amerických spoločností zo SEC EDGAR,
-**natrénuje NLP model**, ktorý v textoch výkazov nájde vybrané finančné údaje, overí jeho presnosť
-a výsledok uloží do jedného prehľadného súboru **`output/investor_kpis.csv`** so štvrťročnými
-a ročnými ukazovateľmi pre investorov – od výsledkov hospodárenia až po **ocenenie akcie**
-(P/E, EV/EBITDA, FCF a dividendový výnos). Výsledky zobrazuje **Streamlit aplikácia**.
+natrénuje NLP model, ktorý v textoch výkazov nájde vybrané finančné údaje, overí jeho presnosť
+a výsledok uloží do súboru output/investor_kpis.csv so štvrťročnými
+a ročnými ukazovateľmi pre investorov – od výsledkov hospodárenia až po ocenenie akcie
+(P/E, EV/EBITDA, FCF a dividendový výnos). Výsledky zobrazí Streamlit.
 
-- Odvetvia a firmy sa vyberajú z katalógu `catalog/companies.csv` (rozbaľovací zoznam v aplikácii).
+- Odvetvia a firmy sa vyberajú z katalógu catalog/companies.csv (rozbaľovací zoznam v aplikácii).
   Pripravené sú: Energetika, Čistá energia, Technológie, Zdravotníctvo, Spotrebný tovar.
 - Predvolene sa spracúvajú fiškálne roky **2024 a 2025** → štvrťroky + medziročné (r/r) zmeny.
 - Fiškálne roky sa riadia firmou (Apple končí v septembri, NVIDIA v januári…).
 
 ---
 
-## 1. Inštalácia vo Visual Studio Code (Windows)
+1. Inštalácia vo VSC
 
-1. Nainštaluj **Python 3.11+** (python.org, zaškrtni *Add to PATH*) a vo VS Code rozšírenie **Python** (Microsoft).
-2. Rozbaľ projekt a otvor priečinok: *File → Open Folder… → `energy_nlp`*.
-3. V termináli (*Terminal → New Terminal*, PowerShell):
-
-```powershell
+```v termináli
 python -m venv .venv
 .venv\Scripts\Activate.ps1          # ak to zablokuje politika: Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 pip install -r requirements.txt
 copy .env.example .env               # v .env doplň svoje meno a e-mail
 ```
 
-4. `Ctrl+Shift+P` → *Python: Select Interpreter* → `.venv`.
+`Ctrl+Shift+P` → *Python: Select Interpreter* → `.venv`.
 
-> **Prečo e-mail?** SEC vyžaduje, aby každý automatický klient poslal v hlavičke `User-Agent`
+> SEC vyžaduje, aby každý automatický klient poslal v hlavičke `User-Agent`
 > meno a kontakt, a povoľuje max. 10 požiadaviek za sekundu. Bez toho vráti chybu 403. Kód to dodržiava.
 
-## 2. Spustenie
+2. Spustenie
 
-### Najjednoduchšie: aplikácia
-```powershell
+```v termináli (prišla mi to ako najjednoduchšia možnosť, kde to zobraziť)
 streamlit run app.py
 ```
 Otvorí sa prehliadač. Na karte *Spracovať firmy* vyber odvetvie (alebo „Všetky odvetvia“), firmy a roky
-a klikni „Stiahnuť a spracovať“. Spracovanie beží **na pozadí ako samostatný proces** – priebeh sa
-zobrazuje priamo v aplikácii a kliknutie ani zatvorenie prehliadača ho neprerušia.
+a klikni „Stiahnuť a spracovať“. Spracovanie beží **na pozadí ako samostatný proces**
 
-### Z príkazového riadku
-```powershell
+
+```v termináli
 python main.py sectors                                   # katalóg odvetví a firiem
 python main.py run --sector Energetika                   # celé odvetvie, roky 2024–2025
 python main.py run --tickers XOM CVX COP --years 2024 2025
@@ -52,15 +46,15 @@ python main.py add NUE --sector "Materiály" --name "Nucor"   # nová firma do k
 python main.py prices                                    # aktualizovať ceny akcií a ocenenie
 python main.py kpi                                       # prepočítať ukazovatele bez nového tréningu
 ```
-Vo VS Code sú tieto príkazy pripravené aj v paneli *Run and Debug* (`Ctrl+Shift+D`).
+Vo VS Code sú tieto príkazy pripravené.
 
-Výsledky sa **dopĺňajú**: keď spracuješ Energetiku a potom Technológie, v `investor_kpis.csv` sú obe.
+Výsledky sa dopĺňajú: keď spracuješ Energetiku a potom Technológie, v `investor_kpis.csv` sú obe.
 Stiahnuté výkazy sa ukladajú do `data/raw/`, takže sa nesťahujú znova.
 
-## 3. Výstup: `output/investor_kpis.csv`
+3. Výstup: `output/investor_kpis.csv`
 
 Jeden riadok = jedna firma × jedno obdobie (Q1–Q4 a FY za celý rok). Kódovanie UTF-8 s BOM,
-takže diakritika funguje aj pri otvorení v Exceli. Rovnaký súbor číta Streamlit aj napr. Power BI.
+takže diakritika funguje aj pri otvorení v Exceli. Rovnaký súbor číta Streamlit.
 
 | Stĺpec | Názov | Prečo je dôležitý pre investora |
 |---|---|---|
@@ -95,12 +89,12 @@ takže diakritika funguje aj pri otvorení v Exceli. Rovnaký súbor číta Stre
 Pomocné a kontrolné súbory sú oddelene v `output/audit/` (detail extrakcie s istotou modelu,
 referenčné hodnoty z XBRL, presnosť modelu, história behov).
 
-### Ako vznikajú štvrťroky
+Ako vznikajú štvrťroky
 - **Výsledovka:** 10-Q uvádza priamo „Three Months Ended“ → Q1–Q3. **Q4 = rok − (Q1+Q2+Q3).** Pri EPS je to aproximácia.
 - **Cash flow:** 10-Q uvádza kumulatívne od začiatku roka → Q2 = H1 − Q1, Q3 = 9M − H1, Q4 = rok − 9M.
 - **Súvaha:** stav ku koncu štvrťroka.
 
-### Ocenenie a ceny akcií
+Ocenenie a ceny akcií
 - **Zdroj cien:** Yahoo Finance cez knižnicu `yfinance` (bezplatné, bez API kľúča). Je to neoficiálne
   rozhranie – ak prestane fungovať, ceny sa dajú doplniť ručne do `catalog/manual_prices.csv`
   (formát `ticker,date,close`, vzor je v `manual_prices.example.csv`); ručné ceny majú prednosť.
@@ -114,14 +108,13 @@ referenčné hodnoty z XBRL, presnosť modelu, história behov).
   aktualizuje sa príkazom `python main.py prices` alebo tlačidlom v aplikácii.
 - Ocenenie dáva zmysel najmä **v porovnaní s ostatnými firmami odvetvia a s históriou firmy** –
   aplikácia preto ukazuje aj medián odvetvia.
+ 
+V tejto chvíli ide o informatívne údaje, nie investičné odporúčanie. Odvetvové údaje sú v textovej časti MD&A – to je ďalší vhodný krok pre NLP na rozšírenie.
 
-Ide o informatívne údaje, nie investičné odporúčanie. Odvetvové údaje (pri ropných firmách objem ťažby
-a realizované ceny ropy) sú v textovej časti MD&A – to je ďalší vhodný krok pre NLP.
-
-## 4. Streamlit aplikácia (`app.py`)
+4. Streamlit (app.py)
 
 | Karta | Obsah |
-|---|---|
+
 | **Prehľad** | 8 kľúčových ukazovateľov firmy so zmenou r/r, aktuálne ocenenie s mediánom odvetvia, tabuľka všetkých období |
 | **Ocenenie** | P/E, EV/EBITDA, P/B a výnosy firiem odvetvia vedľa seba + medián odvetvia, graf |
 | **Porovnanie** | firmy odvetvia vedľa seba pre zvolený ukazovateľ a obdobie |
@@ -130,122 +123,112 @@ a realizované ceny ropy) sú v textovej časti MD&A – to je ďalší vhodný 
 | **Kvalita dát** | presnosť modelu, obdobia na kontrolu, z ktorého riadku výkazu model čítal |
 | **Spracovať firmy** | výber odvetvia a firiem z rozbaľovacieho zoznamu, rokov, spustenie; aktualizácia cien; pridanie novej firmy do katalógu |
 
-Bočný panel: odvetvie, firmy, štvrťroky/roky, rozsah rokov.
 
-## 5. Ako funguje NLP model
+5. Ako funguje NLP model
 
-### Problém
-Výkazy sú dlhé HTML dokumenty so stovkami tabuliek a rovnaký údaj sa v každej firme volá inak
-(„Total revenues and other income“, „Net sales“, „Total operating revenues“…). Čistý zisk sa navyše
-objavuje aj v cash flow, v segmentoch či v MD&A – model musí vybrať správny riadok aj správne obdobie.
+Čo model rieši
+Výkaz firmy je dlhá webová stránka so stovkami tabuliek. Model v nich hľadá 15 konkrétnych údajov
+(tržby, čistý zisk, EPS, cash flow, dlh…). Ťažkosti sú dve:
 
-### Trénovacie dáta bez ručného označovania (weak supervision)
-SEC vyžaduje **inline XBRL**: každé číslo vo výkaze má v HTML skrytú značku, napr.
-`<ix:nonFraction name="us-gaap:NetIncomeLoss" …>`. Projekt ju využíva **len ako učiteľa**:
+- **Každá firma píše to isté inak.** Tržby sú raz „Total revenues and other income“, inde „Net sales“
+  alebo „Total operating revenues“.
+- **Ten istý údaj sa vo výkaze opakuje.** Čistý zisk je vo výsledovke, ale aj v cash flow, v segmentoch
+  alebo v komentári manažmentu. Model musí vybrať správne miesto a správne obdobie (štvrťrok, nie celý rok).
 
-1. `src/html_parser.py` rozloží každú tabuľku na riadky: *popis riadku*, *kontext* (text nad tabuľkou + hlavička), *čísla v stĺpcoch*, *jednotky*.
-2. `src/dataset.py` priradí riadku label (napr. `net_income`), iba ak XBRL značka **presne v stĺpci, z ktorého
-   sa hodnota číta,** má správny koncept, **správne obdobie** a **nie je segmentová**. Ostatné riadky = `OTHER`.
-   (Napr. v tabuľke zmien vlastného kapitálu je správny údaj až v stĺpci „Total“ – taký riadok sa preto neoznačí.)
-3. Model **vidí iba text** – preto ho možno použiť aj na dokumenty bez XBRL (PDF, zahraničné firmy).
+Odkiaľ sa model učí (bez ručného označovania)
+Americký regulátor SEC vyžaduje, aby každé číslo vo výkaze malo skrytú „nálepku“ (XBRL), ktorá hovorí,
+čo znamená – napr. `NetIncomeLoss` = čistý zisk. Projekt tieto nálepky používa **len ako učiteľa**:
 
-Keďže labely vznikajú automaticky, **pridanie odvetvia nič nestojí** – stačí vybrať firmy a model sa
-naučí aj ich terminológiu. Model sa vždy učí zo všetkých doteraz stiahnutých výkazov.
+1. Každá tabuľka sa rozloží na riadky. Pri každom riadku sa zapíše jeho **popis**, **čísla**,
+   **jednotky** (milióny, tisíce) a **text nad tabuľkou** (napr. „Consolidated Statement of Cash Flows“).
+2. Ak má číslo v riadku nálepku hľadaného údaju – a sedí aj obdobie a patrí celej firme, nie segmentu –
+   riadok dostane označenie, napr. *čistý zisk*. Všetky ostatné riadky sú *iné*.
+3. Pri čítaní model **nálepky nevidí**, len text. Preto ho možno použiť aj na dokumenty bez nálepiek
+   (PDF výročné správy, zahraničné firmy).
 
-### Model (`src/model.py`)
-- **Príznaky (TF-IDF):**
-  - popis riadku – slová, dvojice slov a znakové n-gramy 3–5,
-  - kontext tabuľky – text nad tabuľkou a hlavička (nadpis výkazu, jednotky, obdobia),
-  - **okolie riadku** – nadpis sekcie, predchádzajúci a nasledujúci riadok a štrukturálne značky:
-    typ výkazu (výsledovka / súvaha / cash flow), entita (materská / dcérska firma), obdobia stĺpcov,
-    znamienko a rád čísla, desatinné miesta. Vďaka tomu model rozlíši napr. „Diluted“ pod
-    „Earnings per share“ (EPS) od „Diluted“ pod „Weighted-average shares“ (počet akcií).
-- **Klasifikátor:** multinomiálna logistická regresia (14 metrík + OTHER). Trénuje sa na všetkých
-  riadkoch tabuliek s aspoň jedným označeným riadkom + 20 % ostatných (rýchlejší tréning).
-- **Výber hodnoty** – pre každý dokument a metriku najpravdepodobnejší riadok, ktorý:
-  1. má v tabuľke **požadované obdobie** – stĺpec sa vyberá podľa hlavičky („Three Months“ vs.
-     „Nine Months“), takže pri cash flow s 3-mesačnými aj kumulatívnymi stĺpcami sa berie správny,
-  2. v **spoločných výkazoch** (utility podávajú jeden 10-K za materskú aj dcérske firmy) patrí materskej firme,
-  3. je v **„domovskom“ výkaze** metriky (tržby a zisk vo výsledovke, capex v cash flow, dlh v súvahe) –
-     má prednosť pred rovnako nazvaným riadkom v poznámkach, segmentoch či tabuľke zmien vlastného kapitálu,
-  4. pri EPS má hodnotu na 2 desatinné miesta (počet akcií ich nemá),
-  5. pri čistom zisku je to zisk **pripadajúci akcionárom** („attributable to …“), nie vrátane menšinových podielov,
+Označenia vznikajú automaticky, takže **pridanie ďalších firiem či odvetví nestojí žiadnu prácu navyše**.
+Model sa vždy učí zo všetkých doteraz stiahnutých výkazov.
+
+Ako model rozhoduje (`src/model.py`)
+- **Z čoho vychádza:** slová v popise riadku, ich časti (aby spoznal „earning“ aj „earnings“), text nad
+  tabuľkou a okolie riadku – nadpis sekcie, susedné riadky, typ výkazu a veľkosť čísla. Vďaka okoliu odlíši
+  napr. riadok „Diluted“ pod „Earnings per share“ (zisk na akciu) od „Diluted“ pod „Weighted-average shares“
+  (počet akcií).
+- **Aký je to model:** logistická regresia nad váhami slov (TF-IDF) – jednoduchý, rýchly a vysvetliteľný
+  klasifikátor, ktorý každému riadku priradí pravdepodobnosť pre každý z 15 údajov.
+- **Ako vyberie výslednú hodnotu:** spomedzi najpravdepodobnejších riadkov uprednostní ten, ktorý
+  1. má v tabuľke **správne obdobie** (pri štvrťroku stĺpec „Three Months“, nie „Nine Months“),
+  2. patrí **materskej firme**, nie dcérskej,
+  3. je v **správnom výkaze** – tržby a zisk vo výsledovke, investície v cash flow, dlh v súvahe,
+  4. pri zisku na akciu má **2 desatinné miesta** (počet akcií ich nemá),
+  5. pri čistom zisku je to zisk **pripadajúci akcionárom**, nie vrátane menšinových podielov,
   6. pri dlhu rešpektuje význam popisu („…, less current portion“ = dlhodobý dlh, „due within one year“ = krátkodobý).
-- Pri nízkej istote (pod 0,15; pri položkách, ktoré firma nemusí mať, pod 0,5) hodnotu nechá prázdnu namiesto hádania.
+- **Keď si nie je istý**, hodnotu nechá prázdnu namiesto hádania (istota pod 15 %; pri položkách, ktoré
+  firma nemusí mať, napr. spätné odkupy, pod 35 %).
 
-### Vyhodnotenie
-**Leave-one-company-out:** každú spracúvanú firmu číta model natrénovaný iba na ostatných firmách.
-Do výstupu idú práve tieto „nevidené“ predikcie, takže presnosť je poctivý odhad pre novú firmu.
-Každá hodnota sa navyše porovná s oficiálnou XBRL hodnotou → stĺpec `data_check`.
+Ako sa meria presnosť
+Každú firmu číta model, ktorý sa učil **iba na ostatných firmách** a túto nikdy nevidel
+(*leave-one-company-out*). Presnosť je teda odhad, ako by model fungoval na úplne novej firme.
+Každá prečítaná hodnota sa porovná s oficiálnou hodnotou zo SEC – výsledok je v stĺpci `data_check`.
 
-## 6. Rozšírenie o ďalšie odvetvia
-- **V aplikácii:** karta *Spracovať firmy → Pridať spoločnosť do katalógu* (aj nové odvetvie).
-- **V súbore:** doplň riadok do `catalog/companies.csv` (`sector,subsector,ticker,name,cik`); CIK sa dohľadá automaticky zo SEC.
-- **Stĺpec `cik`** sa vypĺňa len vtedy, keď firma zmenila právnu štruktúru a staršie výkazy podával iný
-  emitent. Príklad: ExxonMobil sa v roku 2026 reorganizoval do holdingu – ticker XOM teraz patrí
-  *ExxonMobil Holdings Corp* (CIK 2115436), výkazy do roku 2025 sú pod *Exxon Mobil Corp* (CIK 34088),
-  preto má v katalógu `2115436;34088`. Výkazy oboch emitentov sa spoja.
-- Funguje pre americké firmy, ktoré podávajú **10-K/10-Q** (nie zahraničné s 20-F).
-- **Banky a poisťovne** nemajú tržby, CAPEX ani klasický dlh – pre ne by bolo treba iné metriky (čisté úrokové výnosy, CET1…). Metriky sa definujú v `src/config.py` → `METRICS`.
+6. Pridanie ďalších firiem a odvetví
+- **V app:** karta *Spracovať firmy → Pridať spoločnosť do katalógu* (dá sa založiť aj nové odvetvie).
+- **V súbore:** pridaj riadok do `catalog/companies.csv` (`sector,subsector,ticker,name,cik`).
+  Identifikátor firmy v SEC (CIK) sa dohľadá sám.
+- **Stĺpec `cik` vypĺňaj len výnimočne** – keď firma zmenila právnu štruktúru a staršie výkazy podávala pod
+  iným menom. Príklad: ExxonMobil sa v roku 2026 preorganizoval do holdingu; nové výkazy sú pod
+  CIK 2115436, staršie pod CIK 34088, preto má v katalógu `2115436;34088` a výkazy sa spoja.
+- Funguje pre **americké firmy**, ktoré podávajú výkazy 10-K a 10-Q (nie pre zahraničné firmy s formulárom 20-F).
+- **Banky a poisťovne** sledované ukazovatele nemajú (tržby, investície, klasický dlh); potrebovali by
+  vlastné metriky, ktoré sa dajú doplniť v `src/config.py`.
 
-## 7. Zdroje dát
+7. Zdroje dát
 
-### USA (použité v projekte)
-| Zdroj | Použitie |
-|---|---|
-| SEC – Ticker → CIK `https://www.sec.gov/files/company_tickers.json` | dohľadanie identifikátora firmy |
-| SEC EDGAR Submissions API `https://data.sec.gov/submissions/CIK##########.json` | zoznam podaní, koniec fiškálneho roka, odvetvie (SIC) |
-| SEC EDGAR Archives `https://www.sec.gov/Archives/edgar/data/<CIK>/<accession>/<doc>.htm` | samotné 10-Q / 10-K (HTML s inline XBRL) |
-| SEC – Accessing EDGAR Data | pravidlá: User-Agent, 10 req/s – https://www.sec.gov/os/accessing-edgar-data |
-| SEC XBRL Company Facts API `https://data.sec.gov/api/xbrl/companyfacts/CIK##########.json` | voliteľná krížová kontrola všetkých XBRL hodnôt firmy |
-| EDGAR full-text search `https://www.sec.gov/edgar/search/` | ručné vyhľadávanie a kontrola podaní |
-| Yahoo Finance cez `yfinance` (https://github.com/ranaroussi/yfinance) | denné zatváracie ceny akcií pre ocenenie |
+USA (použité v projekte)
+| Zdroj | Na čo slúži |
 
-### Južná Amerika a Ázia (nepoužité, na ďalšie rozšírenie)
-| Trh | Zdroj | Poznámka |
-|---|---|---|
-| Brazília (Petrobras) | SEC 20-F (ročne) + 6-K; **CVM Dados Abertos** (ITR štvrťročne, DFP ročne, CSV) https://dados.cvm.gov.br | IFRS, portugalčina |
-| Kolumbia (Ecopetrol) | SEC 20-F + 6-K | štvrťročne len PDF |
-| Kórea | **DART Open API** https://opendart.fss.or.kr | štvrťročné výkazy cez API, IFRS |
-| Japonsko | **EDINET API** | od apríla 2024 zrušené povinné štvrťročné správy, ostali polročné; štvrťročné „Kessan Tanshin“ cez TDnet |
-| Čína / HK | **HKEXnews**, Shanghai Stock Exchange / cninfo | PDF, ročné a polročné; A-akcie aj štvrťročne (čínština) |
+| [SEC – zoznam tickerov](https://www.sec.gov/files/company_tickers.json) | prevod tickera (napr. XOM) na identifikátor firmy v SEC |
+| SEC EDGAR – zoznam podaní firmy (`data.sec.gov/submissions/…`) | ktoré výkazy firma podala, kedy končí jej fiškálny rok |
+| SEC EDGAR – archív výkazov (`sec.gov/Archives/edgar/data/…`) | samotné výkazy 10-Q a 10-K |
+| [SEC – pravidlá prístupu](https://www.sec.gov/os/accessing-edgar-data) | povinné meno a e-mail, najviac 10 požiadaviek za sekundu |
+| [EDGAR – vyhľadávanie](https://www.sec.gov/edgar/search/) | ručné dohľadanie a kontrola výkazov |
+| [Yahoo Finance cez yfinance](https://github.com/ranaroussi/yfinance) | denné ceny akcií pre ocenenie |
 
-Na PDF správy je experimentálny príkaz `python main.py pdf správa.pdf --ticker PBR --report-date 2025-12-31`.
+Južná Amerika a Ázia (zatiaľ nepoužité)
+| Trh | Kde sú výkazy | Poznámka |
 
-## 8. Zverejnenie aplikácie (Streamlit Community Cloud)
-1. `python main.py publish` – pripraví priečinok `publish/energy-nlp-app` a zip s kódom a výsledkami
-   (bez `.env`, stiahnutých výkazov a modelu).
-2. Obsah priečinka nahraj do nového repozitára na GitHube.
-3. Na [share.streamlit.io](https://share.streamlit.io) → *Create app* → repozitár, vetva `main`, súbor `app.py`,
-   v *Advanced settings* Python 3.12 → *Deploy*. Vznikne verejný odkaz `https://<názov>.streamlit.app`.
-4. Bez súboru `.env` beží aplikácia v režime len na prezeranie (bez karty *Spracovať firmy*).
-5. Po novom spracovaní firiem spusti znova `publish` a nahraj zmenené súbory z `output/` na GitHub;
-   aplikácia sa aktualizuje sama.
+| Brazília (Petrobras) | SEC (ročný 20-F), štvrťročne [CVM Dados Abertos](https://dados.cvm.gov.br) | IFRS, portugalčina |
+| Kolumbia (Ecopetrol) | SEC (20-F) | štvrťročne len PDF |
+| Kórea | [DART Open API](https://opendart.fss.or.kr) | štvrťročné výkazy cez API, IFRS |
+| Japonsko | EDINET, TDnet | od apríla 2024 už nie sú povinné štvrťročné správy |
+| Čína / Hongkong | HKEXnews, burza v Šanghaji | PDF, často po čínsky |
 
-## 9. Keď niečo nesedí
-- **Firma chýba vo výsledkoch:** `python main.py diagnose TICKER` vypíše, či sa výkazy stiahli,
-  či nie sú poškodené (chybová stránka SEC namiesto výkazu) a koľko riadkov sa z nich spracovalo.
-  Poškodené súbory sa pri ďalšom spustení stiahnu znova automaticky.
-- **Nízka presnosť pri niektorom ukazovateli:** pozri `output/audit/extracted_values.csv` –
-  stĺpec `source_row` ukazuje, z ktorého riadku výkazu model čítal, `gold_value` správnu hodnotu.
-- **Prečo model vybral konkrétnu hodnotu:** `python main.py explain TICKER --year 2025 --q 4 --metric net_income`
-  vypíše najpravdepodobnejšie riadky výkazu, ich typ výkazu, entitu (materská/dcérska firma), obdobia
-  stĺpcov a hodnotu, ktorú by z nich prečítal, spolu so správnou hodnotou z XBRL.
-- **Priebeh a chyby spracovania:** `output/audit/last_run.log` a `output/audit/status.json`.
+Na PDF výročné správy je experimentálny príkaz `python main.py pdf sprava.pdf --ticker PBR --report-date 2025-12-31`.
 
-## 10. Obmedzenia
-- **Utility (elektrárenské holdingy – NextEra, Duke, Southern, AEP, Xcel, Dominion) zatiaľ nie sú podporované.**
-  Podávajú jeden spoločný 10-K/10-Q za materskú firmu a niekoľko dcérskych spoločností s takmer rovnakými
-  výkazmi a model v nich spoľahlivo nerozlíšil materskú firmu (presnosť 64–92 %). Základ riešenia
-  (rozpoznanie entity výkazu) je v `src/html_parser.py`; dotiahnutie je námet na ďalší vývoj.
-- **Dlhové položky** (krátkodobý dlh, úroky) firmy vykazujú veľmi rozdielne – presnosť je nižšia (70–88 %),
-  preto považuj čistý dlh a ukazovatele z neho za orientačné.
-- Parser predpokladá, že bežné obdobie je v **prvom stĺpci** tabuľky (štandard SEC). Odchýlky zachytí `data_check`.
-- EPS za Q4 je dopočítané (aproximácia). Čistý dlh je bez lízingových záväzkov, EBITDA je približná.
-- Ceny z Yahoo sú upravené o **splity akcií**, výkazy nie: ak firma akcie rozdelila (napr. NVIDIA 10:1 v roku 2024), P/E za obdobia pred splitom je skreslené.
-- Silnejší model: `build_model()` v `src/model.py` možno nahradiť FinBERTom – dataset aj vyhodnotenie ostanú.
+9. Keď niečo nesedí
+- **Firma chýba vo výsledkoch:** `python main.py diagnose TICKER` ukáže, či sa výkazy stiahli
+  a koľko sa z nich podarilo spracovať. Poškodené súbory sa pri ďalšom spustení stiahnu znova.
+- **Niektorá hodnota je zlá:** v `output/audit/extracted_values.csv` je pri každej hodnote riadok výkazu,
+  z ktorého model čítal (`source_row`), a správna hodnota zo SEC (`gold_value`).
+- **Prečo model vybral práve túto hodnotu:** `python main.py explain TICKER --year 2025 --q 4 --metric net_income`
+  vypíše riadky, medzi ktorými model vyberal, a čo by z ktorého prečítal.
+- **Priebeh a chyby spracovania:** súbory `output/audit/last_run.log` a `output/audit/status.json`.
 
-## 11. Štruktúra projektu
+10. Obmedzenia
+- **Utility nie sú podporované** (NextEra, Duke, Southern, AEP, Xcel, Dominion). Podávajú jeden spoločný
+  výkaz za materskú firmu a niekoľko dcérskych s takmer rovnakými tabuľkami a model v nich spoľahlivo
+  nerozlíšil materskú firmu (presnosť 64–92 %). Odstránila som prozatím pre zjednodušenie práce momentálne. Je to námet na ďalší vývoj. 
+- **Dlhové položky** (krátkodobý dlh, úroky) vykazujú firmy veľmi rozdielne a presnosť je nižšia (70–88 %).
+  Čistý dlh a ukazovatele z neho ber ako orientačné.
+- Program predpokladá, že **aktuálne obdobie je v prvom stĺpci** tabuľky (štandard SEC). Odchýlky označí `data_check`.
+- **Približné výpočty:** zisk na akciu za Q4 je dopočítaný z ročného a štvrťročných, EBITDA je približná,
+  čistý dlh je bez leasingov.
+- Ceny akcií z Yahoo sú prepočítané pri **rozdelení akcií** (split), výkazy nie. Pri firme, ktorá akcie
+  rozdelila (napr. NVIDIA 10:1 v roku 2024), je P/E za obdobia pred splitom skreslené.
+- **Silnejší model:** jednoduchý model v `src/model.py` sa dá nahradiť jazykovým modelom FinBERT;
+  trénovacie dáta aj meranie presnosti ostanú rovnaké. Je to ďalší námet na ďalší vývoj.
+
+11. Štruktúra projektu
 ```
 energy_nlp/
 ├── app.py                # Streamlit aplikácia
