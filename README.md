@@ -194,20 +194,31 @@ USA (použité v projekte)
 | Zdroj | Na čo slúži |
 
 | [SEC – zoznam tickerov](https://www.sec.gov/files/company_tickers.json) | prevod tickera (napr. XOM) na identifikátor firmy v SEC |
+
 | SEC EDGAR – zoznam podaní firmy (`data.sec.gov/submissions/…`) | ktoré výkazy firma podala, kedy končí jej fiškálny rok |
+
 | SEC EDGAR – archív výkazov (`sec.gov/Archives/edgar/data/…`) | samotné výkazy 10-Q a 10-K |
+
 | [SEC – pravidlá prístupu](https://www.sec.gov/os/accessing-edgar-data) | povinné meno a e-mail, najviac 10 požiadaviek za sekundu |
+
 | [EDGAR – vyhľadávanie](https://www.sec.gov/edgar/search/) | ručné dohľadanie a kontrola výkazov |
+
 | [Yahoo Finance cez yfinance](https://github.com/ranaroussi/yfinance) | denné ceny akcií pre ocenenie |
+
 
 Južná Amerika a Ázia (zatiaľ nepoužité)
 | Trh | Kde sú výkazy | Poznámka |
 
 | Brazília (Petrobras) | SEC (ročný 20-F), štvrťročne [CVM Dados Abertos](https://dados.cvm.gov.br) | IFRS, portugalčina |
+
 | Kolumbia (Ecopetrol) | SEC (20-F) | štvrťročne len PDF |
+
 | Kórea | [DART Open API](https://opendart.fss.or.kr) | štvrťročné výkazy cez API, IFRS |
+
 | Japonsko | EDINET, TDnet | od apríla 2024 už nie sú povinné štvrťročné správy |
+
 | Čína / Hongkong | HKEXnews, burza v Šanghaji | PDF, často po čínsky |
+
 
 Na PDF výročné správy je experimentálny príkaz `python main.py pdf sprava.pdf --ticker PBR --report-date 2025-12-31`.
 
