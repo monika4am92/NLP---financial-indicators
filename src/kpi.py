@@ -108,11 +108,19 @@ def _plausibility(p: pd.DataFrame) -> pd.DataFrame:
     p = p.copy()
     flags = [[] for _ in range(len(p))]
     rev = p["revenue"]
+
+    def drop(metric: str, bad: pd.Series) -> None:
+        bad = bad.fillna(False)
+        for i in np.flatnonzero(bad.to_numpy()):
+            flags[i].append(metric)
+        p.loc[bad, metric] = np.nan
+
     for m in ("capex", "depreciation", "dividends_paid", "buybacks"):
-        bad = (p[m] < 0) | ((m in ("capex", "depreciation")) & (rev > 0) & (p[m] > rev))
-        for i in np.flatnonzero(bad.fillna(False).to_numpy()):
-            flags[i].append(m)
-        p.loc[bad.fillna(False), m] = np.nan
+        drop(m, (p[m] < 0) | ((m in ("capex", "depreciation")) & (rev > 0) & (p[m] > rev)))
+    # úroky za obdobie nemôžu byť záporné ani vyššie ako polovica tržieb (inak ide napr. o celý dlh zo súvahy)
+    drop("interest_expense", (p["interest_expense"] < 0) | ((rev > 0) & (p["interest_expense"] > 0.5 * rev)))
+    # zisk pred zdanením − čistý zisk = dane a menšinové podiely; tie nemôžu byť väčšie ako tržby
+    drop("pretax_income", (rev > 0) & ((p["pretax_income"] - p["net_income"]).abs() > rev))
     p["_implausible"] = [", ".join(f) for f in flags]
     return p
 
