@@ -102,11 +102,29 @@ def _ttm(p: pd.DataFrame) -> pd.DataFrame:
     return p
 
 
-def _ratios(p: pd.DataFrame) -> pd.DataFrame:
+def _plausibility(p: pd.DataFrame) -> pd.DataFrame:
+    """Vynechá ekonomicky nemožné hodnoty (typicky zlý riadok v jednom štvrťroku, ktorý po dopočte
+    štvrťrokov z kumulatívnych hodnôt pokazí aj ďalšie obdobia) a zapíše ich do stĺpca _implausible."""
     p = p.copy()
+    flags = [[] for _ in range(len(p))]
+    rev = p["revenue"]
+    for m in ("capex", "depreciation", "dividends_paid", "buybacks"):
+        bad = (p[m] < 0) | ((m in ("capex", "depreciation")) & (rev > 0) & (p[m] > rev))
+        for i in np.flatnonzero(bad.fillna(False).to_numpy()):
+            flags[i].append(m)
+        p.loc[bad.fillna(False), m] = np.nan
+    p["_implausible"] = [", ".join(f) for f in flags]
+    return p
+
+
+def _ratios(p: pd.DataFrame) -> pd.DataFrame:
+    p = _plausibility(p)
     p["free_cash_flow"] = p["operating_cash_flow"] - p["capex"]
     p["shareholder_returns"] = p["dividends_paid"].fillna(0) + p["buybacks"].fillna(0)
     p["ebitda"] = p["pretax_income"] + p["interest_expense"].fillna(0) + p["depreciation"]
+    too_big = (p["revenue"] > 0) & (p["ebitda"] > p["revenue"])  # EBITDA nemôže byť vyššia ako tržby
+    p.loc[too_big, "_implausible"] = [", ".join(filter(None, [f, "ebitda"])) for f in p.loc[too_big, "_implausible"]]
+    p.loc[too_big, "ebitda"] = np.nan
     p["net_debt"] = (p["long_term_debt"] + p["short_term_borrowings"].fillna(0) + p["current_ltd"].fillna(0)
                      - p["cash"])
     p["net_margin_pct"] = 100 * p["net_income"] / p["revenue"]
@@ -149,12 +167,15 @@ def _data_check(nlp: pd.DataFrame, ref: pd.DataFrame) -> pd.Series:
     for _, row in nlp.iterrows():
         k = tuple(row[c] for c in key)
         if k not in r.index:
-            out.append("Bez referencie")
+            out.append(f"Bez referencie; nepravdepodobné: {row['_implausible']}" if row.get("_implausible")
+                       else "Bez referencie")
             continue
         rr = r.loc[k]
         wrong = [m for m in CHECK_METRICS if pd.notna(row[m]) and pd.notna(rr[m]) and not _close(m, row[m], rr[m])]
         missing = [m for m in CHECK_METRICS if pd.isna(row[m]) and pd.notna(rr[m])]
         msg = []
+        if row.get("_implausible"):
+            msg.append("Nepravdepodobné (vynechané): " + row["_implausible"])
         if wrong:
             msg.append("Skontroluj: " + ", ".join(wrong))
         if missing:
