@@ -1,7 +1,4 @@
-"""Streamlit aplikácia: prehľad finančných ukazovateľov extrahovaných NLP modelom.
 
-Spustenie:  streamlit run app.py
-"""
 from __future__ import annotations
 
 import json
