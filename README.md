@@ -249,7 +249,7 @@ Na PDF výročné správy je experimentálny príkaz `python main.py pdf sprava.
 ```
 energy_nlp/
 ├── app.py                # Streamlit aplikácia
-├── main.py               # príkazový riadok: sectors | run | add | prices | kpi | diagnose | explain | remove | publish | pdf
+├── main.py               # príkazový riadok: sectors | run | add | prices | kpi | diagnose | explain | remove | pdf
 ├── catalog/companies.csv # odvetvia a firmy (rozbaľovacie zoznamy)
 ├── requirements.txt, .env.example, .vscode/launch.json
 └── src/
