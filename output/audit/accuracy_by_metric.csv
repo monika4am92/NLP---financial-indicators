@@ -1,0 +1,16 @@
+metric,accuracy_pct,correct,n
+revenue,91.5,183,200
+net_income,97.9,189,193
+eps_diluted,94.4,187,198
+operating_cash_flow,100.0,200,200
+capex,92.9,158,170
+dividends_paid,90.6,135,149
+buybacks,86.8,145,167
+pretax_income,97.3,178,183
+interest_expense,90.4,161,178
+depreciation,99.5,183,184
+cash,95.4,165,173
+total_equity,95.8,181,189
+long_term_debt,89.1,164,184
+short_term_borrowings,54.5,42,77
+current_ltd,72.6,122,168

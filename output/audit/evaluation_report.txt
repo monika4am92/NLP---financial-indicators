@@ -1,0 +1,72 @@
+Presnosť hodnôt (leave-one-company-out): 91.6 %
+
+Podľa metriky:
+                       accuracy_pct  correct    n
+metric                                           
+revenue                        91.5      183  200
+net_income                     97.9      189  193
+eps_diluted                    94.4      187  198
+operating_cash_flow           100.0      200  200
+capex                          92.9      158  170
+dividends_paid                 90.6      135  149
+buybacks                       86.8      145  167
+pretax_income                  97.3      178  183
+interest_expense               90.4      161  178
+depreciation                   99.5      183  184
+cash                           95.4      165  173
+total_equity                   95.8      181  189
+long_term_debt                 89.1      164  184
+short_term_borrowings          54.5       42   77
+current_ltd                    72.6      122  168
+
+Podľa spoločnosti:
+        accuracy_pct  correct    n
+ticker                            
+AAPL            87.5       98  112
+AES             89.8       79   88
+CEG            100.0      119  119
+COP             90.1       91  101
+CVX             88.2       90  102
+DVN             79.5       93  117
+ENPH            93.3       97  104
+EOG             92.3       96  104
+FANG            99.0       95   96
+FSLR           100.0       96   96
+HAL             94.6       88   93
+JNJ             89.3       92  103
+KO              93.3      112  120
+MPC             94.6      106  112
+MRK             98.1      102  104
+MSFT            92.0      103  112
+NVDA            98.2      111  113
+OXY             96.9       93   96
+PEP             81.4       96  118
+PFE             86.7       91  105
+PG              97.8       90   92
+PSX             97.9       94   96
+SLB             97.7       86   88
+VLO             81.5       88  108
+XOM             76.3       87  114
+
+Klasifikácia riadkov:
+                       precision    recall  f1-score   support
+
+              revenue       0.30      0.92      0.45       472
+           net_income       0.28      0.90      0.43       435
+          eps_diluted       0.43      0.95      0.59       322
+  operating_cash_flow       0.56      0.96      0.71       200
+                capex       0.39      0.79      0.52       200
+       dividends_paid       0.48      0.94      0.64       144
+             buybacks       0.47      0.88      0.61       171
+        pretax_income       0.36      0.94      0.52       274
+     interest_expense       0.29      0.91      0.44       221
+         depreciation       0.32      0.92      0.48       303
+                 cash       0.46      0.96      0.62       239
+         total_equity       0.68      0.89      0.77       211
+       long_term_debt       0.42      0.83      0.56       252
+short_term_borrowings       0.27      0.67      0.38        67
+          current_ltd       0.38      0.79      0.51       188
+
+            micro avg       0.37      0.90      0.52      3699
+            macro avg       0.41      0.88      0.55      3699
+         weighted avg       0.39      0.90      0.54      3699
