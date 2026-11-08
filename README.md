@@ -116,11 +116,17 @@ V tejto chvíli ide o informatívne údaje, nie investičné odporúčanie. Odve
 | Karta | Obsah |
 
 | **Prehľad** | 8 kľúčových ukazovateľov firmy so zmenou r/r, aktuálne ocenenie s mediánom odvetvia, tabuľka všetkých období |
+
 | **Ocenenie** | P/E, EV/EBITDA, P/B a výnosy firiem odvetvia vedľa seba + medián odvetvia, graf |
+
 | **Porovnanie** | firmy odvetvia vedľa seba pre zvolený ukazovateľ a obdobie |
+
 | **Vývoj** | vývoj ukazovateľa v čase (štvrťroky alebo roky), max. 8 firiem |
+
 | **Tabuľka** | filtrované dáta so slovenskými názvami stĺpcov + stiahnutie CSV |
+
 | **Kvalita dát** | presnosť modelu, obdobia na kontrolu, z ktorého riadku výkazu model čítal |
+
 | **Spracovať firmy** | výber odvetvia a firiem z rozbaľovacieho zoznamu, rokov, spustenie; aktualizácia cien; pridanie novej firmy do katalógu |
 
 
